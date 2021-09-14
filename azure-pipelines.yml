@@ -44,7 +44,7 @@ stages:
         notifyUsers: |
           $(CERT_EMAIL)
         instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on Oracle'
-        onTimeout: 'resume'
+        onTimeout: 'reject'
   - job: RunScript
     displayName: Configure proxy and restart sevices
     steps:
