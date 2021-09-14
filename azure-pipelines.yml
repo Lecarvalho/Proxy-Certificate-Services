@@ -51,7 +51,7 @@ stages:
         onTimeout: 'reject'
   - job: RunScript
     displayName: Configure proxy and restart sevices
-    condition: succeeded()
+    dependsOn: WaitForValidation
     steps:
       - task: SSH@0
         inputs:
