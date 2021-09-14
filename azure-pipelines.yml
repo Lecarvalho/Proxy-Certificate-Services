@@ -12,7 +12,7 @@ stages:
         inputs:
           sshEndpoint: $(sshServer)
           contents: |
-            '**'
+            **
             !azure-pipelines.yml
             !.git
           targetFolder: '/Workspace/PROXY'
