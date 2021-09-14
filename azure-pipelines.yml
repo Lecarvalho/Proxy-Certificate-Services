@@ -24,9 +24,15 @@ stages:
           inline: |
             sudo chmod 777 /Workspace/PROXY -R
             cd /Workspace/PROXY
-            echo Replace variables
+            echo Replace variables script
             awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "certbot/create-dummy-certificate.sh"
-            echo Give acces to run the script
+            echo Replace variables nginx
+            awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "nginx/domain.conf"
+            awk -i inplace -v cuv1="__SERVICE__" -v cuv2="$(SERVICE)" '{gsub(cuv1,cuv2); print;}' "nginx/domain.conf"
+            awk -i inplace -v cuv1="__SERVICE_PORT__" -v cuv2="$(SERVICE_PORT)" '{gsub(cuv1,cuv2); print;}' "nginx/domain.conf"
+            echo Rename domain.conf file
+            mv nginx/domain.conf nginx/$(DOMAIN).conf
+            echo Gives acces to run the script
             chmod +x certbot/create-dummy-certificate.sh
             echo Run the script
             sudo ./certbot/create-dummy-certificate.sh
@@ -58,12 +64,7 @@ stages:
           sshEndpoint: $(sshServer)
           runOptions: 'inline'
           inline: |
-            cd /Workspace
-            echo replace variables
-            awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
-            awk -i inplace -v cuv1="__SERVICE__" -v cuv2="$(SERVICE)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
-            awk -i inplace -v cuv1="__SERVICE_PORT__" -v cuv2="$(SERVICE_PORT)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
-            mv PROXY/nginx/domain.conf PROXY/nginx/$(DOMAIN).conf
+            cd /Workspace/PROXY
             echo docker-compose pull / stop / up
             sudo docker-compose pull && docker-compose stop && docker-compose up -d --remove-orphans
           failOnStdErr: false
