@@ -11,16 +11,19 @@ stages:
       - task: CopyFilesOverSSH@0
         inputs:
           sshEndpoint: $(sshServer)
-          contents: '/certbot/*.sh'
-          targetFolder: '/Workspace'
+          contents: |
+            '**'
+            !azure-pipelines.yml
+            !.git
+          targetFolder: '/Workspace/PROXY'
           readyTimeout: '20000'
       - task: SSH@0
         inputs:
           sshEndpoint: $(sshServer)
           runOptions: 'inline'
           inline: |
-            cd /Workspace
-            sudo chmod 777 /Workspace/certbot -R
+            cd /Workspace/PROXY
+            sudo chmod 777 /PROXY -R
             echo Replace variables
             awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "certbot/create-dummy-certificate.sh"
             echo Give acces to run the script
@@ -46,27 +49,18 @@ stages:
           $(CERT_EMAIL)
         instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on $(sshServer)'
         onTimeout: 'reject'
-  - job: RunScript
-    displayName: Configure proxy and restart sevices
-    steps:
-      - task: CopyFilesOverSSH@0
-        inputs:
-          sshEndpoint: $(sshServer)
-          contents: '**'
-          targetFolder: '/Workspace/PROXY'
-          readyTimeout: '20000'
-      - task: SSH@0
-        inputs:
-          sshEndpoint: $(sshServer)
-          runOptions: 'inline'
-          inline: |
-            cd /Workspace
-            echo replace variables
-            awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
-            awk -i inplace -v cuv1="__SERVICE__" -v cuv2="$(SERVICE)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
-            awk -i inplace -v cuv1="__SERVICE_PORT__" -v cuv2="$(SERVICE_PORT)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
-            mv PROXY/nginx/domain.conf PROXY/nginx/$(DOMAIN).conf
-            echo docker-compose pull / stop / up
-            sudo docker-compose pull && docker-compose stop && docker-compose up -d --remove-orphans
-          failOnStdErr: false
-          readyTimeout: '20000'
+    - task: SSH@0
+      inputs:
+        sshEndpoint: $(sshServer)
+        runOptions: 'inline'
+        inline: |
+          cd /Workspace
+          echo replace variables
+          awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
+          awk -i inplace -v cuv1="__SERVICE__" -v cuv2="$(SERVICE)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
+          awk -i inplace -v cuv1="__SERVICE_PORT__" -v cuv2="$(SERVICE_PORT)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
+          mv PROXY/nginx/domain.conf PROXY/nginx/$(DOMAIN).conf
+          echo docker-compose pull / stop / up
+          sudo docker-compose pull && docker-compose stop && docker-compose up -d --remove-orphans
+        failOnStdErr: false
+        readyTimeout: '20000'
