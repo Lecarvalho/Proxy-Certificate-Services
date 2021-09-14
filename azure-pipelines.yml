@@ -22,8 +22,8 @@ stages:
           sshEndpoint: $(sshServer)
           runOptions: 'inline'
           inline: |
+            sudo chmod 777 /Workspace/PROXY -R
             cd /Workspace/PROXY
-            sudo chmod 777 /PROXY -R
             echo Replace variables
             awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "certbot/create-dummy-certificate.sh"
             echo Give acces to run the script
