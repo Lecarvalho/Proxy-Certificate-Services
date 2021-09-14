@@ -44,7 +44,7 @@ stages:
         notifyUsers: |
           test@test.com
           example@example.com
-        instructions: 'Please validate the build configuration and resume'
+        instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on Oracle'
         onTimeout: 'resume'
   - job: RunScript
     displayName: Configure proxy and restart sevices
