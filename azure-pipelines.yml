@@ -30,6 +30,7 @@ stages:
           readyTimeout: '20000'
 
 - stage: GenerateRealCertificate
+  condition: succeeded()
   displayName: Validate if everything is ok, generate good certificate, restart proxy services
   jobs: 
   - job: waitForValidation
