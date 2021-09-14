@@ -37,13 +37,10 @@ stages:
     displayName: Wait for external validation
     timeoutInMinutes: 4320 # job times out in 3 days
     steps:
-    - task: ManualValidation@0
-      timeoutInMinutes: 1440 # task times out in 1 day
+    - task: ManualIntervention@8
       inputs:
-        notifyUsers: |
-          $(CERT_EMAIL)
         instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on $(sshServer)'
-        onTimeout: 'resume'
+        emailRecipients: '$(CERT_EMAIL)'
   - job: RunScript
     displayName: Configure proxy and restart sevices
     steps:
