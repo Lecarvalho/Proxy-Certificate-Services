@@ -10,13 +10,13 @@ stages:
     steps:
       - task: CopyFilesOverSSH@0
         inputs:
-          sshEndpoint: Oracle
+          sshEndpoint: $(sshServer)
           contents: '/certbot/*.sh'
           targetFolder: '/Workspace/certbot'
           readyTimeout: '20000'
       - task: SSH@0
         inputs:
-          sshEndpoint: Oracle
+          sshEndpoint: $(sshServer)
           runOptions: 'inline'
           inline: |
             cd /Workspace
@@ -43,20 +43,20 @@ stages:
       inputs:
         notifyUsers: |
           $(CERT_EMAIL)
-        instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on Oracle'
+        instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on $(sshServer)'
         onTimeout: 'reject'
   - job: RunScript
     displayName: Configure proxy and restart sevices
     steps:
       - task: CopyFilesOverSSH@0
         inputs:
-          sshEndpoint: Oracle
+          sshEndpoint: $(sshServer)
           contents: '**'
           targetFolder: '/Workspace/PROXY'
           readyTimeout: '20000'
       - task: SSH@0
         inputs:
-          sshEndpoint: Oracle
+          sshEndpoint: $(sshServer)
           runOptions: 'inline'
           inline: |
             cd /Workspace
