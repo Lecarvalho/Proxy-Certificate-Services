@@ -55,7 +55,7 @@ stages:
           readyTimeout: '20000'
       - task: SSH@0
         inputs:
-          sshEndpoint: sshEndpoint
+          sshEndpoint: $(sshEndpoint)
           runOptions: 'inline'
           inline: |
             cd /Workspace
