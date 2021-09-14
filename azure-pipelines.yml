@@ -32,21 +32,22 @@ stages:
 - stage: GenerateRealCertificate
   displayName: Validate if everything is ok, generate good certificate, restart proxy services
   jobs: 
+  - job: waitForValidation
+    displayName: Wait for external validation
+    pool: server
+    timeoutInMinutes: 4320 # job times out in 3 days
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440 # task times out in 1 day
+      inputs:
+        notifyUsers: |
+          test@test.com
+          example@example.com
+        instructions: 'Please validate the build configuration and resume'
+        onTimeout: 'resume'
   - job: RunScript
     displayName: Configure proxy and restart sevices
     steps:
-      - task: ManualValidation@0
-        timeoutInMinutes: 1440 # task times out in 1 day
-        inputs:
-          notifyUsers: |
-            test@test.com
-            example@example.com
-          instructions: 'Please validate the build configuration and resume'
-          onTimeout: 'resume'
-      # - task: ManualIntervention@8
-      #   inputs:
-      #     instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on Oracle'
-      #     emailRecipients: '$(CERT_EMAIL)'
       - task: CopyFilesOverSSH@0
         inputs:
           sshEndpoint: Oracle
