@@ -1,0 +1,70 @@
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: CreateDummyCertificate
+  displayName: Create dummy certificate juste for the first time
+  jobs: 
+  - job: RunScript
+    displayName: Run script that create dummy certificate
+    steps:
+      - task: CopyFilesOverSSH@0
+        inputs:
+          sshEndpoint: $(sshEndpoint)
+          contents: '/certbot/*.sh'
+          targetFolder: '/Workspace/certbot'
+          readyTimeout: '20000'
+      - task: SSH@0
+        inputs:
+          sshEndpoint: $(sshEndpoint)
+          runOptions: 'inline'
+          inline: |
+            cd /Workspace
+            echo Replace variables
+            awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "certbot/create-dummy-certificate.sh"
+            echo Give acces to run the script
+            chmod +x certbot/create-dummy-certificate.sh
+            echo Run the script
+            sudo ./certbot/create-dummy-certificate.sh
+          failOnStdErr: false
+          readyTimeout: '20000'
+
+- stage: GenerateRealCertificate
+  condition: succeeded()
+  displayName: Validate if everything is ok, generate good certificate, restart proxy services
+  jobs: 
+  - job: waitForValidation
+    displayName: Wait for external validation
+    timeoutInMinutes: 4320 # job times out in 3 days
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440 # task times out in 1 day
+      inputs:
+        notifyUsers: |
+          $(CERT_EMAIL)
+        instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on $(sshEndpoint)'
+        onTimeout: 'resume'
+  - job: RunScript
+    displayName: Configure proxy and restart sevices
+    steps:
+      - task: CopyFilesOverSSH@0
+        inputs:
+          sshEndpoint: sshEndpoint
+          contents: '**'
+          targetFolder: '/Workspace/PROXY'
+          readyTimeout: '20000'
+      - task: SSH@0
+        inputs:
+          sshEndpoint: sshEndpoint
+          runOptions: 'inline'
+          inline: |
+            cd /Workspace
+            echo replace variables
+            awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
+            awk -i inplace -v cuv1="__SERVICE__" -v cuv2="$(SERVICE)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
+            awk -i inplace -v cuv1="__SERVICE_PORT__" -v cuv2="$(SERVICE_PORT)" '{gsub(cuv1,cuv2); print;}' "PROXY/nginx/domain.conf"
+            mv PROXY/nginx/domain.conf PROXY/nginx/$(DOMAIN).conf
+            echo docker-compose pull / stop / up
+            sudo docker-compose pull && docker-compose stop && docker-compose up -d --remove-orphans
+          failOnStdErr: false
+          readyTimeout: '20000'
