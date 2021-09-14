@@ -12,7 +12,7 @@ stages:
         inputs:
           sshEndpoint: $(sshServer)
           contents: '/certbot/*.sh'
-          targetFolder: '/Workspace/certbot'
+          targetFolder: '/Workspace'
           readyTimeout: '20000'
       - task: SSH@0
         inputs:
@@ -20,6 +20,7 @@ stages:
           runOptions: 'inline'
           inline: |
             cd /Workspace
+            sudo chmod 777 /Workspace/certbot -R
             echo Replace variables
             awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "certbot/create-dummy-certificate.sh"
             echo Give acces to run the script
