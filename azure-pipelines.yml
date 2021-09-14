@@ -49,7 +49,7 @@ stages:
     steps:
       - task: CopyFilesOverSSH@0
         inputs:
-          sshEndpoint: sshEndpoint
+          sshEndpoint: $(sshEndpoint)
           contents: '**'
           targetFolder: '/Workspace/PROXY'
           readyTimeout: '20000'
