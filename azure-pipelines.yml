@@ -33,17 +33,13 @@ stages:
   condition: succeeded()
   displayName: Validate if everything is ok, generate good certificate, restart proxy services
   jobs: 
-  - job: waitForValidation
-    displayName: Wait for external validation
-    timeoutInMinutes: 4320 # job times out in 3 days
-    steps:
-    - task: ManualIntervention@8
-      inputs:
-        instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on Oracle'
-        emailRecipients: '$(CERT_EMAIL)'
   - job: RunScript
     displayName: Configure proxy and restart sevices
     steps:
+      - task: ManualIntervention@8
+        inputs:
+          instructions: 'Please run certbot script to create the good certificate for $(DOMAIN) on Oracle'
+          emailRecipients: '$(CERT_EMAIL)'
       - task: CopyFilesOverSSH@0
         inputs:
           sshEndpoint: Oracle
