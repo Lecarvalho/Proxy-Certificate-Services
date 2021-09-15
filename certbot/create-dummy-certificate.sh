@@ -4,11 +4,6 @@ rsa_key_size=4096
 data_path="./data/certbot"
 domains=__DOMAIN__
 
-if [ -d "$data_path" ]; then
-  "Existing data found for $domains. Delete de folder and run again "
-  exit
-fi
-
 if [ ! -e "$data_path/conf/options-ssl-nginx.conf" ] || [ ! -e "$data_path/conf/ssl-dhparams.pem" ]; then
   echo "### Downloading recommended TLS parameters ..."
   mkdir -p "$data_path/conf"
