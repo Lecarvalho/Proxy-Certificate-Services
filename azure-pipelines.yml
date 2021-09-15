@@ -26,6 +26,7 @@ stages:
             cd /Workspace/PROXY
             echo Replace variables script
             awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "certbot/create-dummy-certificate.sh"
+            awk -i inplace -v cuv1="__CERT_EMAIL__" -v cuv2="$(CERT_EMAIL)" '{gsub(cuv1,cuv2); print;}' "certbot/configure-real-certificate-manually.sh"
             echo Replace variables nginx
             awk -i inplace -v cuv1="__DOMAIN__" -v cuv2="$(DOMAIN)" '{gsub(cuv1,cuv2); print;}' "nginx/domain.conf"
             awk -i inplace -v cuv1="__SERVICE__" -v cuv2="$(SERVICE)" '{gsub(cuv1,cuv2); print;}' "nginx/domain.conf"
